@@ -3,7 +3,7 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
 import matplotlib.animation as animation
-from matplotlib import style
+#from matplotlib import style
 
 import Tkinter as tk
 import ttk
@@ -14,7 +14,7 @@ import numpy as np
 import obd
 
 LARGE_FONT= ("Verdana", 12)
-style.use("ggplot")
+#style.use("ggplot")
 
 f = Figure(figsize=(10,6), dpi=100)
 a = f.add_subplot(111)
