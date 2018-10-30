@@ -3,8 +3,13 @@ import obd
 import sys
 import requests as req
 import time
+import math
 
-connOBD = obd.OBD(portstr="/dev/ttys003")
+def truncate(number, digits):
+    stepper = pow(10.0, digits)
+    return math.trunc(stepper * number) / stepper
+
+connOBD = obd.OBD(portstr="/dev/ttys001")
 
 cmdSpeed = obd.commands.SPEED
 cmdRPM = obd.commands.RPM
@@ -29,9 +34,10 @@ def getData():
     resPos = rawPos.messages[0].data[0]
     resTemp = rawTemp.messages[0].data[0]
 
-    resRPM = (resRPM1 * 256.00 + resRPM2 ) / 4.00
-    resPos = resPos * 100.00 / 255.00
-    resTemp = resTemp - 40.00
+    resRPM = (resRPM1 * 256 + resRPM2 ) / 4
+    resPos = resPos * 100.0 / 255.0
+    resPos = truncate(resPos, 2)
+    resTemp = resTemp - 40
     
     return resSpeed, resRPM, resPos, resTemp
 
@@ -43,17 +49,17 @@ def logData (speed, rpm, pos, temp):
         connDB.commit()
         c.close()
 
-        return "ok!"
+        return "Insert OK"
     except:
-        return "error!"
+        return "Insert error!"
     
 while True:
 
     speed, rpm, pos, temp = getData()
 
     res2 = logData(speed, rpm, pos, temp)
-    print(res2)
 
+    
     payload = {'obd.speed': speed, 'obd.rpm': rpm, 'obd.pos': pos, 'obd.temp': temp}
     print(payload)
     resp = req.get("http://150.162.6.111/ScadaBRy/httpds", params=payload)
