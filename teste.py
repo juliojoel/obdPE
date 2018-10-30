@@ -9,7 +9,8 @@ def truncate(number, digits):
     stepper = pow(10.0, digits)
     return math.trunc(stepper * number) / stepper
 
-connOBD = obd.OBD(portstr="/dev/ttys001")
+#connOBD = obd.OBD(portstr="/dev/ttys003")
+connOBD = obd.OBD()
 
 cmdSpeed = obd.commands.SPEED
 cmdRPM = obd.commands.RPM
