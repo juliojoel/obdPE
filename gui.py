@@ -1,40 +1,41 @@
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+from matplotlib.figure import Figure
+import matplotlib.animation as animation
+#from matplotlib import style
+
 import Tkinter as tk
 import ttk
-import leather
-from PIL import Image, ImageTk
 
-import cairo
-import rsvg
-
+import pandas as pd
+import numpy as np
 
 import obd
 
 LARGE_FONT= ("Verdana", 12)
+#style.use("ggplot")
+
+f = Figure(figsize=(10,6), dpi=100)
+a = f.add_subplot(111)
 
 port = ""
 
-filename = "lines.svg"
+def animate(i):
+    pullData = open('sampleText.txt','r').read()
+    dataArray = pullData.split('\n')
+    xar=[]
+    yar=[]
+    for eachLine in dataArray:
+        if len(eachLine)>1:
+            x,y = eachLine.split(',')
+            xar.append(int(x))
+            yar.append(int(y))
+    a.clear()
+    a.plot(xar,yar)
 
-data = [(0, 3),
-    (4, 5),
-    (7, 9),
-    (8, 4)
-]
-
-def svgPhotoImage(self,file_path_name):
-        import Image,ImageTk,rsvg,cairo
-        "Returns a ImageTk.PhotoImage object represeting the svg file" 
-        # Based on pygame.org/wiki/CairoPygame and http://bit.ly/1hnpYZY        
-        svg = rsvg.Handle(file=file_path_name)
-        width, height = svg.get_dimension_data()[:2]
-        surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, int(width), int(height))
-        context = cairo.Context(surface)
-        #context.set_antialias(cairo.ANTIALIAS_SUBPIXEL)
-        svg.render_cairo(context)
-        tk_image=ImageTk.PhotoImage('RGBA')
-        image=Image.frombuffer('RGBA',(width,height),surface.get_data(),'raw','BGRA',0,1)
-        tk_image.paste(image)
-        return(tk_image)
+    title = "title\n"
+    a.set_title(title)   
 
 class obdGUI(tk.Tk):
 
@@ -77,7 +78,7 @@ class StartPage(tk.Frame):
         label.pack(pady=10,padx=10)
 
         button1 = ttk.Button(self, text="OBDSim",
-                            command=lambda: [self.connect("/dev/ttys001")])
+                            command=lambda: [self.connect("/dev/ttys003")])
         button1.pack()
 
         button2 = ttk.Button(self, text="Connect to ELM327",
@@ -185,25 +186,12 @@ class CoolantGraph(tk.Frame):
         button1.pack()
         
 
-        chart = leather.Chart('Line')
-        chart.add_line(data)
+        canvas = FigureCanvasTkAgg(f, self)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
-        svg = chart.to_svg()
-
-        
-        img = cairo.ImageSurface(cairo.FORMAT_ARGB32, 640,480)
-
-        ctx = cairo.Context(img)
-
-        #handle = rsvg.Handle(filename)
-        handle= rsvg.Handle(None, str(svg))
-
-        handle.render_cairo(ctx)
-
-        img.write_to_png("svg.png")
-
-        imgg = ImageTk.PhotoImage(Image.open("svg.png"))
-        lbl = tk.Label(window, image = imgg).pack()
+        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
 app = obdGUI()
+ani = animation.FuncAnimation(f, animate, interval=1000)
 app.mainloop()
