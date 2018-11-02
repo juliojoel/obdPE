@@ -50,7 +50,7 @@ from .UnitsAndScaling import Unit
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.WARNING) #DEBUG
+logger.setLevel(logging.WARNING) #DEBUG / WARNING
 
 console_handler = logging.StreamHandler() # sends output to stderr
 console_handler.setFormatter(logging.Formatter("[%(name)s] %(message)s"))

@@ -7,23 +7,21 @@ import matplotlib.animation as animation
 import Tkinter as tk
 import ttk
 
-import pandas as pd
-import numpy as np
+from obd import OBD
 
 from time import sleep
 from ObdDAO import ObdDAO
 from ObdData import ObdData
 from ScadaBR import updateScada
 
-from obd import OBD
-
 connOBD = ""
 connDB = ObdDAO()
 connected = False
 
+default_port = "/dev/ttys005"
+
 LARGE_FONT= ("Verdana", 18)
 TITLE_FONT= ("Verdana", 30)
-
 
 fig = Figure(figsize=(10,8), dpi=100)
 
@@ -103,10 +101,8 @@ class StartPage(tk.Frame):
         label.grid(row=1,columnspan=4,pady=10)
 
         entry1 = ttk.Entry(self, justify="center")
-        entry1.insert(0, '/dev/ttys006')
-        entry1.grid(row=2,column=1)
-        
-
+        entry1.insert(0, default_port)
+        entry1.grid(row=2,column=1)     
 
         button1 = ttk.Button(self, text="OBDSim",
                             command=lambda: [self.connect(entry1.get())])
