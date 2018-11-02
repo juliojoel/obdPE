@@ -32,7 +32,7 @@ plotRPM = fig.add_subplot(412)
 plotPos = fig.add_subplot(413)
 plotTemp = fig.add_subplot(414)
 
-title = "Live Graph\n\n"
+title = "Live Graph\n"
 fig.suptitle(title)
 
 def animate(i):
@@ -100,18 +100,24 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = tk.Label(self, text="Choose working mode:", font=LARGE_FONT)
-        label.grid(row=1,columnspan=4)
+        label.grid(row=1,columnspan=4,pady=10)
+
+        entry1 = ttk.Entry(self, justify="center")
+        entry1.insert(0, '/dev/ttys006')
+        entry1.grid(row=2,column=1)
+        
+
 
         button1 = ttk.Button(self, text="OBDSim",
-                            command=lambda: [self.connect("/dev/ttys005")])
-        button1.grid(row=2,column=1)
+                            command=lambda: [self.connect(entry1.get())])
+        button1.grid(row=2,column=2)
 
         button2 = ttk.Button(self, text="Connect to ELM327",
                             command=lambda: [self.connect("")])
-        button2.grid(row=2,column=2)
+        button2.grid(row=3,columnspan=4,pady=10)
 
         self.status = tk.Label(self, text="", font=LARGE_FONT)
-        self.status.grid(row=3,columnspan=4)
+        self.status.grid(row=4,columnspan=4)
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(3, weight=1)
@@ -145,16 +151,19 @@ class Dashboard(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
-        label = tk.Label(self, text=("""OBD Dashboard"""), font=TITLE_FONT)
-        label.grid(row=1,columnspan=5)
 
-        button1 = ttk.Button(self, text="LiveGraph",
+        button1 = ttk.Button(self, text="Exit",
+                            command=quit)
+        button1.grid(row=1,column=0,pady=10)
+
+        button2 = ttk.Button(self, text="LiveGraph",
                             command=lambda: controller.show_frame(LiveGraph))
-        button1.grid(row=2,columnspan=5)
+        button2.grid(row=1,column=2)
+        
+        label = tk.Label(self, text=("""OBD Dashboard"""), font=TITLE_FONT)
+        label.grid(row=2,columnspan=5,pady=20)
 
-##        button5 = ttk.Button(self, text="Exit",
-##                            command=quit)
-##        button5.pack()
+        
 
         labelSpeed = tk.Label(self, text="Speed", font=TITLE_FONT)
         labelSpeed.grid(row=3,column=1,pady=50)
@@ -171,6 +180,9 @@ class Dashboard(tk.Frame):
         labelPos = tk.Label(self, text="Throttle Pos", font=TITLE_FONT)
         labelPos.grid(row=6,column=1,pady=50)
 
+        xspace = tk.Label(self, text="          ", font=TITLE_FONT)
+        xspace.grid(row=6,column=2)
+
         labelTemp = tk.Label(self, text="Coolant Temp", font=TITLE_FONT)
         labelTemp.grid(row=6,column=3)
 
@@ -180,8 +192,7 @@ class Dashboard(tk.Frame):
         self.valTemp = tk.Label(self, text="", font=LARGE_FONT)
         self.valTemp.grid(row=7,column=3)
 
-        yspace = tk.Label(self, text="          ", font=TITLE_FONT)
-        yspace.grid(row=6,column=2)
+        
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(4, weight=1)
@@ -193,7 +204,10 @@ class Dashboard(tk.Frame):
 
         if connected:
             speed, rpm, pos, temp = connOBD.getData()
+            
             res2 = connDB.logData(speed, rpm, pos, temp)
+
+            res3 = updateScada(speed, rpm, pos, temp)
 
             self.valSpeed["text"] = ("%d km/h" % speed)
             self.valRPM["text"] = ("%d rpm" % rpm)
@@ -202,7 +216,7 @@ class Dashboard(tk.Frame):
 
             self.update()
 
-        self.after(1000, self.update_values)
+        self.after(500, self.update_values)
 
                 
 class LiveGraph(tk.Frame):
@@ -212,7 +226,7 @@ class LiveGraph(tk.Frame):
 
         button1 = ttk.Button(self, text="Back to Dashboard",
                             command=lambda: controller.show_frame(Dashboard))
-        button1.grid(row=1)
+        button1.grid(row=1,pady=10)
 
         canvas = FigureCanvasTkAgg(fig, self)
         canvas.draw()
@@ -223,7 +237,7 @@ class LiveGraph(tk.Frame):
 
 
 app = obdGUI()
-ani = animation.FuncAnimation(fig, animate, blit=False, interval=10000, repeat=False)
+ani = animation.FuncAnimation(fig, animate, blit=False, interval=3000, repeat=False)
 app.mainloop()
 
 
