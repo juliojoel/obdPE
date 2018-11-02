@@ -11,31 +11,38 @@ import ttk
 import pandas as pd
 import numpy as np
 
-import obd
+from time import sleep
+from ObdDAO import ObdDAO
+from ObdData import ObdData
+from ScadaBR import updateScada
+
+from obd import OBD
+
+connOBD = ""
+connDB = ObdDAO()
+connected = False
 
 LARGE_FONT= ("Verdana", 12)
-#style.use("ggplot")
 
-f = Figure(figsize=(10,6), dpi=100)
-a = f.add_subplot(111)
+figSpeed = Figure(figsize=(10,6), dpi=100)
+figRPM = Figure(figsize=(10,6), dpi=100)
+figPos = Figure(figsize=(10,6), dpi=100)
+figTemp = Figure(figsize=(10,6), dpi=100)
 
-port = ""
+plotSpeed = figSpeed.add_subplot(111)
+plotRPM = figRPM.add_subplot(111)
+plotPos = figPos.add_subplot(111)
+plotTemp = figTemp.add_subplot(111)
 
 def animate(i):
-    pullData = open('sampleText.txt','r').read()
-    dataArray = pullData.split('\n')
-    xar=[]
-    yar=[]
-    for eachLine in dataArray:
-        if len(eachLine)>1:
-            x,y = eachLine.split(',')
-            xar.append(int(x))
-            yar.append(int(y))
-    a.clear()
-    a.plot(xar,yar)
+    dates, speeds = connDB.selectSpeed()
+    plotSpeed.clear()
+    plotSpeed.plot(dates,speeds)
 
-    title = "title\n"
-    a.set_title(title)   
+    plotSpeed.set_xticklabels([])
+
+    title = "Speeds\n"
+    plotSpeed.set_title(title)   
 
 class obdGUI(tk.Tk):
 
@@ -78,11 +85,11 @@ class StartPage(tk.Frame):
         label.pack(pady=10,padx=10)
 
         button1 = ttk.Button(self, text="OBDSim",
-                            command=lambda: [self.connect("/dev/ttys003")])
+                            command=lambda: [self.connect("/dev/ttys005")])
         button1.pack()
 
         button2 = ttk.Button(self, text="Connect to ELM327",
-                            command=lambda: [self.connect()])
+                            command=lambda: [self.connect("")])
         button2.pack()
 
         self.status = tk.Label(self, text="", font=LARGE_FONT)
@@ -90,18 +97,23 @@ class StartPage(tk.Frame):
 
     def connect(self, port):
 
+        global connected
+        global connOBD
+
         if port=="":            
             self.status["text"] = "Connecting to ELM327..."
             self.update()
-            conn = obd.OBD()
+            connOBD = ObdData("")
+
             
         else:
             self.status["text"] = "Connecting to simulator..."
             self.update()
-            conn = obd.OBD(portstr=port)
+            connOBD = ObdData(port)
 
-        if obd.OBD.is_connected(conn):
-            app.show_frame(Dashboard)            
+        if OBD.is_connected(connOBD.conn):
+            connected = True
+            app.show_frame(Dashboard)
         else:
             self.status["text"] = "Error!!"
             self.update()
@@ -133,6 +145,17 @@ class Dashboard(tk.Frame):
                             command=quit)
         button5.pack()
 
+        self.update_values()
+
+
+    def update_values(self):
+
+        if connected:
+            speed, rpm, pos, temp = connOBD.getData()
+            res2 = connDB.logData(speed, rpm, pos, temp)
+
+        self.after(1000, self.update_values)
+
                 
 class SpeedGraph(tk.Frame):
 
@@ -145,7 +168,11 @@ class SpeedGraph(tk.Frame):
                             command=lambda: controller.show_frame(Dashboard))
         button1.pack()
 
+        canvas = FigureCanvasTkAgg(figSpeed, self)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
 
+        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
 
 class RPMGraph(tk.Frame):
@@ -159,7 +186,11 @@ class RPMGraph(tk.Frame):
                             command=lambda: controller.show_frame(Dashboard))
         button1.pack()
 
-
+##        canvas = FigureCanvasTkAgg(figRPM, self)
+##        canvas.draw()
+##        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+##
+##        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
 class ThrottleGraph(tk.Frame):
 
@@ -184,14 +215,9 @@ class CoolantGraph(tk.Frame):
         button1 = ttk.Button(self, text="Back to Dashboard",
                             command=lambda: controller.show_frame(Dashboard))
         button1.pack()
-        
-
-        canvas = FigureCanvasTkAgg(f, self)
-        canvas.draw()
-        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-
-        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
 app = obdGUI()
-ani = animation.FuncAnimation(f, animate, interval=1000)
+ani = animation.FuncAnimation(figSpeed, animate, interval=1000)
 app.mainloop()
+
+
