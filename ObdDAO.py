@@ -40,24 +40,30 @@ class ObdDAO(object):
             print("Error: logData")
             return
 
-    def selectSpeed(self):
+    def selectData(self):
 
         try:
             c = self.conn.cursor()
-            c.execute("select timestamp, speed from obd order by timestamp desc limit 50")
+            c.execute("select timestamp, speed, rpm, position, temperature from obd order by timestamp desc limit 50")
             data = c.fetchall()
             c.close()
 
             dates = []
             speeds = []
+            rpms = []
+            positions = []
+            temperatures = []
 
             for row in reversed(data):
-		dates.append(row[0])
+                dates.append(row[0])
 		speeds.append(row[1])
+		rpms.append(row[2])
+		positions.append(row[3])
+		temperatures.append(row[4])
 
-            return dates, speeds
+            return dates, speeds, rpms, positions, temperatures
         except:
-            print("Error: selectSpeed")
+            print("Error: selectData")
             return
 
         

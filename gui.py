@@ -3,7 +3,6 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
 from matplotlib.figure import Figure
 import matplotlib.animation as animation
-#from matplotlib import style
 
 import Tkinter as tk
 import ttk
@@ -22,27 +21,44 @@ connOBD = ""
 connDB = ObdDAO()
 connected = False
 
-LARGE_FONT= ("Verdana", 12)
+LARGE_FONT= ("Verdana", 18)
+TITLE_FONT= ("Verdana", 30)
 
-figSpeed = Figure(figsize=(10,6), dpi=100)
-figRPM = Figure(figsize=(10,6), dpi=100)
-figPos = Figure(figsize=(10,6), dpi=100)
-figTemp = Figure(figsize=(10,6), dpi=100)
 
-plotSpeed = figSpeed.add_subplot(111)
-plotRPM = figRPM.add_subplot(111)
-plotPos = figPos.add_subplot(111)
-plotTemp = figTemp.add_subplot(111)
+fig = Figure(figsize=(10,8), dpi=100)
+
+plotSpeed = fig.add_subplot(411)
+plotRPM = fig.add_subplot(412)
+plotPos = fig.add_subplot(413)
+plotTemp = fig.add_subplot(414)
+
+title = "Live Graph\n\n"
+fig.suptitle(title)
 
 def animate(i):
-    dates, speeds = connDB.selectSpeed()
+
+    dates, speeds, rpms, positions, temperatures = connDB.selectData()
+
     plotSpeed.clear()
+    plotRPM.clear()
+    plotPos.clear()
+    plotTemp.clear()
+    
     plotSpeed.plot(dates,speeds)
+    plotRPM.plot(dates,rpms)
+    plotPos.plot(dates,positions)
+    plotTemp.plot(dates,temperatures)
+    
+    plotSpeed.set_xticks([])
+    plotRPM.set_xticks([])
+    plotPos.set_xticks([])
+    plotTemp.set_xticks([])
 
-    plotSpeed.set_xticklabels([])
-
-    title = "Speeds\n"
-    plotSpeed.set_title(title)   
+    plotSpeed.set_title("Speed")
+    plotRPM.set_title("RPM")
+    plotPos.set_title("Throttle Position")
+    plotTemp.set_title("Coolant Temperature")
+    
 
 class obdGUI(tk.Tk):
 
@@ -61,7 +77,7 @@ class obdGUI(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, Dashboard, SpeedGraph, RPMGraph, ThrottleGraph, CoolantGraph):
+        for F in (StartPage, Dashboard, LiveGraph):
 
             frame = F(container, self)
 
@@ -70,6 +86,8 @@ class obdGUI(tk.Tk):
             frame.grid(row=0, column=0, sticky="nsew")
 
         self.show_frame(StartPage)
+
+        
 
     def show_frame(self, cont):
 
@@ -82,18 +100,22 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
         label = tk.Label(self, text="Choose working mode:", font=LARGE_FONT)
-        label.pack(pady=10,padx=10)
+        label.grid(row=1,columnspan=4)
 
         button1 = ttk.Button(self, text="OBDSim",
                             command=lambda: [self.connect("/dev/ttys005")])
-        button1.pack()
+        button1.grid(row=2,column=1)
 
         button2 = ttk.Button(self, text="Connect to ELM327",
                             command=lambda: [self.connect("")])
-        button2.pack()
+        button2.grid(row=2,column=2)
 
         self.status = tk.Label(self, text="", font=LARGE_FONT)
-        self.status.pack(pady=10,padx=10)
+        self.status.grid(row=3,columnspan=4)
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(3, weight=1)
+
 
     def connect(self, port):
 
@@ -123,27 +145,46 @@ class Dashboard(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
-        label = tk.Label(self, text=("""OBD Dashboard"""), font=LARGE_FONT)
-        label.pack(pady=10,padx=10)
+        label = tk.Label(self, text=("""OBD Dashboard"""), font=TITLE_FONT)
+        label.grid(row=1,columnspan=5)
 
-        button1 = ttk.Button(self, text="Speed",
-                            command=lambda: controller.show_frame(SpeedGraph))
-        button1.pack()
+        button1 = ttk.Button(self, text="LiveGraph",
+                            command=lambda: controller.show_frame(LiveGraph))
+        button1.grid(row=2,columnspan=5)
 
-        button2 = ttk.Button(self, text="RPM",
-                            command=lambda: controller.show_frame(RPMGraph))
-        button2.pack()
+##        button5 = ttk.Button(self, text="Exit",
+##                            command=quit)
+##        button5.pack()
 
-        button3 = ttk.Button(self, text="Throttle Pos",
-                            command=lambda: controller.show_frame(ThrottleGraph))
-        button3.pack()
-        button4 = ttk.Button(self, text="Coolant Temp",
-                            command=lambda: controller.show_frame(CoolantGraph))
-        button4.pack()
+        labelSpeed = tk.Label(self, text="Speed", font=TITLE_FONT)
+        labelSpeed.grid(row=3,column=1,pady=50)
 
-        button5 = ttk.Button(self, text="Exit",
-                            command=quit)
-        button5.pack()
+        labelRPM = tk.Label(self, text="RPM", font=TITLE_FONT)
+        labelRPM.grid(row=3,column=3)
+
+        self.valSpeed = tk.Label(self, text="", font=LARGE_FONT)
+        self.valSpeed.grid(row=4,column=1)
+
+        self.valRPM = tk.Label(self, text="", font=LARGE_FONT)
+        self.valRPM.grid(row=4,column=3)
+
+        labelPos = tk.Label(self, text="Throttle Pos", font=TITLE_FONT)
+        labelPos.grid(row=6,column=1,pady=50)
+
+        labelTemp = tk.Label(self, text="Coolant Temp", font=TITLE_FONT)
+        labelTemp.grid(row=6,column=3)
+
+        self.valPos = tk.Label(self, text="", font=LARGE_FONT)
+        self.valPos.grid(row=7,column=1)
+
+        self.valTemp = tk.Label(self, text="", font=LARGE_FONT)
+        self.valTemp.grid(row=7,column=3)
+
+        yspace = tk.Label(self, text="          ", font=TITLE_FONT)
+        yspace.grid(row=6,column=2)
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(4, weight=1)
 
         self.update_values()
 
@@ -154,70 +195,35 @@ class Dashboard(tk.Frame):
             speed, rpm, pos, temp = connOBD.getData()
             res2 = connDB.logData(speed, rpm, pos, temp)
 
+            self.valSpeed["text"] = ("%d km/h" % speed)
+            self.valRPM["text"] = ("%d rpm" % rpm)
+            self.valPos["text"] = ("%d %%" % pos)
+            self.valTemp["text"] = ("%d degC" % temp)
+
+            self.update()
+
         self.after(1000, self.update_values)
 
                 
-class SpeedGraph(tk.Frame):
+class LiveGraph(tk.Frame):
 
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Speed Graph", font=LARGE_FONT)
-        label.pack(pady=10,padx=10)
 
         button1 = ttk.Button(self, text="Back to Dashboard",
                             command=lambda: controller.show_frame(Dashboard))
-        button1.pack()
+        button1.grid(row=1)
 
-        canvas = FigureCanvasTkAgg(figSpeed, self)
+        canvas = FigureCanvasTkAgg(fig, self)
         canvas.draw()
-        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+        canvas.get_tk_widget().grid(row=2)
 
-        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-
-class RPMGraph(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="RPM Graph", font=LARGE_FONT)
-        label.pack(pady=10,padx=10)
-
-        button1 = ttk.Button(self, text="Back to Dashboard",
-                            command=lambda: controller.show_frame(Dashboard))
-        button1.pack()
-
-##        canvas = FigureCanvasTkAgg(figRPM, self)
-##        canvas.draw()
-##        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
-##
-##        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-class ThrottleGraph(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Throttle Position Graph", font=LARGE_FONT)
-        label.pack(pady=10,padx=10)
-
-        button1 = ttk.Button(self, text="Back to Dashboard",
-                            command=lambda: controller.show_frame(Dashboard))
-        button1.pack()
+        canvas._tkcanvas.grid(row=2)
 
 
-
-class CoolantGraph(tk.Frame):
-
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Coolant Temperature Graph", font=LARGE_FONT)
-        label.pack(pady=10,padx=10)
-
-        button1 = ttk.Button(self, text="Back to Dashboard",
-                            command=lambda: controller.show_frame(Dashboard))
-        button1.pack()
 
 app = obdGUI()
-ani = animation.FuncAnimation(figSpeed, animate, interval=1000)
+ani = animation.FuncAnimation(fig, animate, blit=False, interval=10000, repeat=False)
 app.mainloop()
 
 
