@@ -4,7 +4,7 @@ from ObdData import ObdData
 from ScadaBR import updateScada
 
 #connOBD = ObdData("/dev/ttys005")
-connOBD = ObdData("")
+connOBD = ObdData("/dev/pts/3")
 connDB = ObdDAO()
 
 while True:
