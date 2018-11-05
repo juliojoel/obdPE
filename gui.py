@@ -18,7 +18,7 @@ connOBD = ""
 connDB = ObdDAO()
 connected = False
 
-default_port = "/dev/ttys005"
+default_port = "/dev/pts/3"
 interval_graph = 3000
 interval_dashboard = 1000
 
