@@ -1,5 +1,7 @@
 from DB import DB
 
+import re
+
 class ObdDAO(object):
 
     def __init__(self):
@@ -44,7 +46,7 @@ class ObdDAO(object):
 
         try:
             c = self.conn.cursor()
-            c.execute("select timestamp, speed, rpm, position, temperature from obd order by timestamp desc limit 600")
+            c.execute("select timestamp, speed, rpm, position, temperature from obd order by timestamp desc limit 60")
             data = c.fetchall()
             c.close()
 
@@ -55,7 +57,9 @@ class ObdDAO(object):
             temperatures = []
 
             for row in reversed(data):
-                dates.append(row[0])
+                date = row[0]
+                datestr = re.sub('[^0-9]', '', str(date))
+                dates.append(int(datestr))
 		speeds.append(row[1])
 		rpms.append(row[2])
 		positions.append(row[3])
