@@ -44,7 +44,7 @@ class ObdDAO(object):
 
         try:
             c = self.conn.cursor()
-            c.execute("select timestamp, speed, rpm, position, temperature from obd order by timestamp desc limit 50")
+            c.execute("select timestamp, speed, rpm, position, temperature from obd order by timestamp desc limit 600")
             data = c.fetchall()
             c.close()
 

@@ -19,6 +19,8 @@ connDB = ObdDAO()
 connected = False
 
 default_port = "/dev/ttys005"
+interval_graph = 3000
+interval_dashboard = 1000
 
 LARGE_FONT= ("Verdana", 18)
 TITLE_FONT= ("Verdana", 30)
@@ -207,12 +209,12 @@ class Dashboard(tk.Frame):
 
             self.valSpeed["text"] = ("%d km/h" % speed)
             self.valRPM["text"] = ("%d rpm" % rpm)
-            self.valPos["text"] = ("%d %%" % pos)
+            self.valPos["text"] = ("%.2f %%" % pos)
             self.valTemp["text"] = ("%d degC" % temp)
 
             self.update()
 
-        self.after(500, self.update_values)
+        self.after(interval_dashboard, self.update_values)
 
                 
 class LiveGraph(tk.Frame):
@@ -233,7 +235,5 @@ class LiveGraph(tk.Frame):
 
 
 app = obdGUI()
-ani = animation.FuncAnimation(fig, animate, blit=False, interval=3000, repeat=False)
+ani = animation.FuncAnimation(fig, animate, blit=False, interval=interval_graph, repeat=False)
 app.mainloop()
-
-
