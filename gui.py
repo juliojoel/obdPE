@@ -18,7 +18,7 @@ connOBD = ""
 connDB = ObdDAO()
 connected = False
 
-default_port = "/dev/pts/3"
+default_port = "/dev/ttys003"
 interval_graph = 3000
 interval_dashboard = 1000
 
@@ -235,5 +235,5 @@ class LiveGraph(tk.Frame):
 
 
 app = obdGUI()
-#ani = animation.FuncAnimation(fig, animate, blit=False, interval=interval_graph, repeat=False)
+ani = animation.FuncAnimation(fig, animate, blit=False, interval=interval_graph, repeat=False)
 app.mainloop()
