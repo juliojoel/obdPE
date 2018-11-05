@@ -235,5 +235,5 @@ class LiveGraph(tk.Frame):
 
 
 app = obdGUI()
-ani = animation.FuncAnimation(fig, animate, blit=False, interval=interval_graph, repeat=False)
+#ani = animation.FuncAnimation(fig, animate, blit=False, interval=interval_graph, repeat=False)
 app.mainloop()
